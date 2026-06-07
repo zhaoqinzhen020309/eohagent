@@ -1,0 +1,66 @@
+project:
+  name: eohagent_tsp_gls_qwen_20x20
+  problem: tsp_gls
+  output_dir: ./eohagent/results/tsp_gls_qwen_20x20
+
+evaluator:
+  mode: import
+  problem: tsp_gls
+  objective_direction: minimize
+  function_name: update_edge_distance
+  timeout: 500
+  n_inst_eva: 64
+  time_limit: 60
+  ite_max: 1000
+  perturbation_moves: 1
+
+llm:
+  provider: openai_compatible
+  model: qwen2.5-coder:32b
+  api_base: http://127.0.0.1:11434
+  api_key: ollama
+  temperature: 0.7
+  max_retries: 3
+  timeout: 240
+
+evolution:
+  pop_size: 20
+  generations: 20
+  offspring_per_generation: 20
+  n_proc: 5
+  max_llm_retries: 3
+  max_eval_retries: 1
+  parent_selection: rank
+  survival_selection: greedy
+  deduplicate_code: true
+
+bootstrap:
+  use_baseline_seed: true
+  seed_path: ./eohagent/seeds/tsp_gls_baseline.json
+
+agent:
+  max_steps_per_offspring: 8
+  max_repairs_per_candidate: 2
+  enable_dynamic_skill_selection: true
+  enable_generation_planning: true
+  enable_generation_reflection: true
+
+memory:
+  enable_compaction: true
+  compact_every_generation: true
+  compact_token_threshold: 60000
+  keep_recent_events: 80
+
+context_management:
+  enable: true
+  context_window: 32768
+  compact_threshold: 0.70
+  chars_per_token: 3.0
+  max_compaction_retries: 2
+  recent_events: 12
+  population_items: 8
+  notebook_items: 6
+
+generalization:
+  enable_audit: false
+  enable_probes: false

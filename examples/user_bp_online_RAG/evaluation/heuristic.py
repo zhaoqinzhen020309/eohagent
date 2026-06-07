@@ -1,0 +1,37 @@
+# Second best heuristic extracted from training results
+# Objective: 0.00624
+# Algorithm: This algorithm calculates scores by combining a bin's remaining capacity with a Gaussian-based penalty for new bins, an exponential bonus for utilization, a hyperbolic bonus for exact fits, and a segmented function that penalizes small residuals while rewarding larger usable residuals with adaptive thresholds based on bin capacity and item size.
+
+import numpy as np
+
+
+def score(item, bins):
+    remaining_after = bins - item
+    max_capacity = np.max(bins)
+
+    # Exponential decay component for perfect fits
+    perfect_fit = np.where(remaining_after == 0, 100.0,
+                           np.exp(-np.abs(remaining_after) / (item * 0.1)))
+
+    # Hyperbolic tangent for bin utilization efficiency
+    utilization = (max_capacity - bins) / max_capacity
+    utilization_score = 2.5 * np.tanh(utilization * 3.0) + 1.0
+
+    # Gaussian penalty for problematic leftover spaces
+    leftover_ratio = remaining_after / item
+    leftover_penalty = np.where((leftover_ratio > 0.05) & (leftover_ratio < 1.5),
+                                8.0 * np.exp(-(leftover_ratio - 0.3) ** 2 / 0.2), 0)
+
+    # Adaptive scaling based on capacity ratios
+    capacity_ratio = bins / max_capacity
+    adaptive_scale = 1.2 + 0.8 * np.cos(capacity_ratio * np.pi * 1.5)
+
+    # Combine components with adaptive scaling
+    scores = (perfect_fit * adaptive_scale +
+              utilization_score * 2.8 -
+              leftover_penalty * 1.5)
+
+    # Set score to -inf for unused bins
+    scores = np.where(bins == max_capacity, -np.inf, scores)
+
+    return scores

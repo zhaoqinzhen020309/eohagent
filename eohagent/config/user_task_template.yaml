@@ -1,0 +1,15 @@
+project:
+  name: eohagent_user_task
+  problem: custom
+  output_dir: ./eohagent/results/user_task_run
+
+evaluator:
+  mode: subprocess
+  eval_dir: ./examples/your_task/evaluation
+  heuristic_filename: heuristic.py
+  run_command: python runEval.py
+  objective_direction: minimize
+  function_name: heuristic
+
+bootstrap:
+  seed_path: ./eohagent/seeds/user_task_baseline.json

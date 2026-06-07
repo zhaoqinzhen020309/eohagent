@@ -1,0 +1,7 @@
+[
+  {
+    "id": "best_fit_seed",
+    "algorithm": "Best-Fit baseline: place the current item into the feasible bin that leaves the smallest remaining capacity after placement.",
+    "code": "def score(item, bins):\n    import numpy as np\n    scores = item - bins\n    return scores"
+  }
+]

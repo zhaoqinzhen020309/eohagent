@@ -1,0 +1,7 @@
+[
+  {
+    "id": "nearest_neighbor_seed",
+    "algorithm": "Nearest-neighbor baseline: choose the unvisited node closest to the current node.",
+    "code": "import numpy as np\n\ndef select_next_node(current_node, destination_node, univisited_nodes, distance_matrix):\n    distances = np.array([distance_matrix[current_node][i] for i in univisited_nodes])\n    return univisited_nodes[int(np.argmin(distances))]"
+  }
+]

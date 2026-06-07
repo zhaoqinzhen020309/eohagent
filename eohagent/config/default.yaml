@@ -1,0 +1,79 @@
+project:
+  name: eohagent_default
+  problem: bp_online
+  output_dir: ./eohagent/results/default_run
+
+run:
+  mode: run
+  resume: false
+  allow_dirty_output_dir: false
+
+evaluator:
+  mode: import
+  problem: bp_online
+  objective_direction: minimize
+  timeout: 120
+  eval_dir: ./examples/bp_online/evaluation
+  heuristic_filename: heuristic.py
+  run_command: python runEval.py
+  function_name: score
+
+llm:
+  provider: mock
+  model: mock-agent
+  api_base: ${OPENAI_API_BASE}
+  api_key: ${OPENAI_API_KEY}
+  temperature: 0.7
+  max_retries: 3
+  timeout: 120
+
+evolution:
+  pop_size: 4
+  generations: 2
+  offspring_per_generation: 2
+  n_proc: 1
+  max_llm_retries: 3
+  max_eval_retries: 1
+  parent_selection: rank
+  survival_selection: greedy
+  deduplicate_code: true
+
+selection:
+  use_selection_score: false
+  diversity_weight: 0.0
+
+bootstrap:
+  use_baseline_seed: true
+  seed_path: ./eohagent/seeds/bp_online_baseline.json
+
+agent:
+  max_steps_per_offspring: 8
+  max_repairs_per_candidate: 2
+  enable_dynamic_skill_selection: true
+  enable_generation_planning: true
+  enable_generation_reflection: true
+
+memory:
+  enable_compaction: true
+  enable_generation_reflection: true
+  compact_every_generation: true
+  compact_token_threshold: 60000
+  keep_recent_events: 50
+
+context_management:
+  enable: true
+  context_window: 32768
+  compact_threshold: 0.70
+  chars_per_token: 3.0
+  max_compaction_retries: 2
+  recent_events: 12
+  population_items: 8
+  notebook_items: 6
+
+generalization:
+  enable_audit: false
+  enable_probes: false
+  probe_threshold: 0.5
+  probe_weight: 0.0
+  std_weight: 0.0
+  tail_weight: 0.0

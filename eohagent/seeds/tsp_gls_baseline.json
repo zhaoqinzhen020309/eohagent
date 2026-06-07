@@ -1,0 +1,82 @@
+[
+  {
+    "id": "linear_usage_penalty_seed",
+    "mechanism_family": "linear_usage_penalty",
+    "algorithm": "Hypothesis: Standard GLS linear usage penalty increases distances of tour edges according to historical edge usage. Mechanism family: linear_usage_penalty. Parent delta: baseline linear usage-count scaling. Expected effect: discourages repeated local-optimum edges while preserving a simple stable update.",
+    "expected_effect": "Discourage repeated local-optimum edges with a stable linear penalty.",
+    "risk_assumptions": ["Linear growth can over-penalize very frequently used edges."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    penalty_strength = 0.1\n    n = len(local_opt_tour)\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = float(edge_n_used[a, b])\n        penalty = 1.0 + penalty_strength * (1.0 + usage)\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "sqrt_usage_penalty_seed",
+    "mechanism_family": "sqrt_usage_penalty",
+    "algorithm": "Hypothesis: Sublinear square-root usage scaling reduces over-penalization of very frequent edges while still encouraging escape from repeated local optima. Mechanism family: sqrt_usage_penalty. Parent delta: replace linear usage growth with sqrt growth. Expected effect: more robust penalties across instances with different reuse counts.",
+    "expected_effect": "Smooth high usage counts and reduce brittle over-penalization.",
+    "risk_assumptions": ["Too mild on edges that need aggressive diversification."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    penalty_strength = 0.16\n    n = len(local_opt_tour)\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        penalty = 1.0 + penalty_strength * np.sqrt(1.0 + usage)\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "log_usage_penalty_seed",
+    "mechanism_family": "log_usage_penalty",
+    "algorithm": "Hypothesis: Logarithmic usage scaling preserves the ordering of repeated edges but compresses extreme usage values. Mechanism family: log_usage_penalty. Parent delta: use log1p usage response. Expected effect: stable cross-instance behavior when edge usage distributions have long tails.",
+    "expected_effect": "Compress extreme usage counts while keeping repeated edges penalized.",
+    "risk_assumptions": ["May under-react when strong diversification is needed."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    penalty_strength = 0.18\n    n = len(local_opt_tour)\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        penalty = 1.0 + penalty_strength * np.log1p(1.0 + usage)\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "capped_usage_penalty_seed",
+    "mechanism_family": "capped_usage_penalty",
+    "algorithm": "Hypothesis: Capping usage penalties avoids runaway distance inflation while preserving GLS diversification. Mechanism family: capped_usage_penalty. Parent delta: linear penalty with explicit upper bound. Expected effect: improve robustness on instances where a few edges are repeatedly used.",
+    "expected_effect": "Prevent runaway penalties caused by repeated edges.",
+    "risk_assumptions": ["The cap can be too conservative for difficult local optima."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    penalty_strength = 0.12\n    max_penalty = 1.8\n    n = len(local_opt_tour)\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        penalty = min(max_penalty, 1.0 + penalty_strength * (1.0 + usage))\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "rank_topk_penalty_seed",
+    "mechanism_family": "rank_topk_penalty",
+    "algorithm": "Hypothesis: Penalizing only the most suspicious tour edges concentrates diversification pressure instead of perturbing every local-optimum edge. Mechanism family: rank_topk_penalty. Parent delta: apply stronger penalties to top-k usage edges in the tour and a mild penalty elsewhere. Expected effect: targeted exploration with less collateral disruption.",
+    "expected_effect": "Target the highest-usage tour edges while keeping the rest stable.",
+    "risk_assumptions": ["Top-k focus may ignore moderately bad edges."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    n = len(local_opt_tour)\n    usages = []\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usages.append(float(edge_n_used[a, b]))\n    k = max(1, int(np.ceil(0.2 * n)))\n    threshold = np.partition(np.asarray(usages, dtype=float), -k)[-k]\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = float(edge_n_used[a, b])\n        strength = 0.18 if usage >= threshold else 0.04\n        penalty = 1.0 + strength * (1.0 + usage)\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "length_weighted_penalty_seed",
+    "mechanism_family": "length_weighted_penalty",
+    "algorithm": "Hypothesis: Long edges in a local optimum are more suspicious, so usage penalties should be length-weighted. Mechanism family: length_weighted_penalty. Parent delta: scale usage penalty by edge length relative to mean tour edge length. Expected effect: bias GLS away from structurally expensive repeated edges.",
+    "expected_effect": "Focus penalties on long repeated edges in the current local optimum.",
+    "risk_assumptions": ["Can overfit to geometric length and underuse usage history."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    n = len(local_opt_tour)\n    tour_lengths = []\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        tour_lengths.append(float(edge_distance[a, b]))\n    mean_length = float(np.mean(tour_lengths)) + 1e-12\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        length_factor = float(edge_distance[a, b]) / mean_length\n        length_factor = min(2.5, max(0.5, length_factor))\n        penalty = 1.0 + 0.08 * (1.0 + usage) * length_factor\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "utility_ratio_penalty_seed",
+    "mechanism_family": "utility_ratio_penalty",
+    "algorithm": "Hypothesis: Classic GLS utility should prefer edges with high cost relative to accumulated penalty, so penalty strength should follow a length-to-usage utility ratio. Mechanism family: utility_ratio_penalty. Parent delta: combine edge length and historical usage as a utility score. Expected effect: penalize edges that are both expensive and insufficiently discouraged.",
+    "expected_effect": "Approximate GLS utility by combining edge cost and usage count.",
+    "risk_assumptions": ["Utility ratio can be noisy when edge distances are very small."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    n = len(local_opt_tour)\n    utilities = []\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        utilities.append(float(edge_distance[a, b]) / (1.0 + float(edge_n_used[a, b])))\n    mean_utility = float(np.mean(utilities)) + 1e-12\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        utility = float(edge_distance[a, b]) / (1.0 + usage)\n        utility_factor = min(2.0, max(0.5, utility / mean_utility))\n        penalty = 1.0 + 0.1 * utility_factor * np.sqrt(1.0 + usage)\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "adaptive_strength_by_n_seed",
+    "mechanism_family": "adaptive_strength_by_n",
+    "algorithm": "Hypothesis: GLS penalty strength should adapt to tour size; larger instances need gentler per-edge perturbation. Mechanism family: adaptive_strength_by_n. Parent delta: scale penalty strength by a bounded function of n. Expected effect: improve transfer across TSP sizes.",
+    "expected_effect": "Use weaker per-edge perturbations on larger tours and stronger ones on smaller tours.",
+    "risk_assumptions": ["The size schedule may not match all datasets."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    n = max(1, len(local_opt_tour))\n    strength = 0.18 / np.sqrt(float(n) / 50.0 + 1.0)\n    strength = float(min(0.14, max(0.04, strength)))\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        penalty = 1.0 + strength * (1.0 + np.sqrt(usage))\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "mean_usage_normalized_seed",
+    "mechanism_family": "mean_usage_normalized",
+    "algorithm": "Hypothesis: Relative usage within the current tour is more transferable than absolute usage count. Mechanism family: mean_usage_normalized. Parent delta: normalize each edge usage by mean tour usage before applying the penalty. Expected effect: reduce sensitivity to evaluator run length and instance-specific usage scale.",
+    "expected_effect": "Penalize edges according to usage relative to the current tour average.",
+    "risk_assumptions": ["Mean normalization can amplify noise when all usages are small."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    n = len(local_opt_tour)\n    usages = []\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usages.append(max(0.0, float(edge_n_used[a, b])))\n    mean_usage = float(np.mean(usages)) + 1.0\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        relative_usage = (1.0 + usage) / mean_usage\n        relative_usage = min(3.0, max(0.25, relative_usage))\n        penalty = 1.0 + 0.1 * relative_usage\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  },
+  {
+    "id": "smooth_saturation_penalty_seed",
+    "mechanism_family": "smooth_saturation_penalty",
+    "algorithm": "Hypothesis: Smoothly saturated usage penalties preserve monotonicity while preventing extreme penalty jumps. Mechanism family: smooth_saturation_penalty. Parent delta: use tanh saturation over usage. Expected effect: balance diversification and stability with a continuous bounded response.",
+    "expected_effect": "Create bounded monotone penalties without hard discontinuities.",
+    "risk_assumptions": ["Saturation level may be too low for some local optima."],
+    "code": "import numpy as np\n\n\ndef update_edge_distance(edge_distance, local_opt_tour, edge_n_used):\n    updated_edge_distance = edge_distance.copy()\n    n = len(local_opt_tour)\n    base_strength = 0.08\n    saturation_strength = 0.35\n    for i in range(n):\n        a = int(local_opt_tour[i])\n        b = int(local_opt_tour[(i + 1) % n])\n        usage = max(0.0, float(edge_n_used[a, b]))\n        penalty = 1.0 + base_strength + saturation_strength * np.tanh(usage / 8.0)\n        updated_edge_distance[a, b] *= penalty\n        updated_edge_distance[b, a] *= penalty\n    return updated_edge_distance"
+  }
+]

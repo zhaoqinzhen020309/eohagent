@@ -1,0 +1,442 @@
+[
+  {
+    "id": "spec_linear_top8_standard_seed",
+    "mechanism_family": "linear_usage_penalty",
+    "algorithm": "Hypothesis: Use a linear usage distance update with top-8 penalty edges, one perturbation move, periodic reset-to-best restart, and constant strength. This is the comparable ARCH_SPEC baseline for controlled GLS architecture search.",
+    "expected_effect": "Provide a strong fixed GLS architecture seed comparable to the previous best architecture baseline.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "linear_usage",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_length_top8_standard_seed",
+    "mechanism_family": "length_weighted_penalty",
+    "algorithm": "Hypothesis: Keep the same control layers but make distance penalties length-aware so repeated long edges are discouraged more strongly.",
+    "expected_effect": "Improve escape from local optima dominated by long repeated tour edges.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "length_weighted_usage",
+        "strength": 0.08,
+        "usage_power": 1.0,
+        "length_weight": 0.5,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_utility_top8_standard_seed",
+    "mechanism_family": "utility_ratio_penalty",
+    "algorithm": "Hypothesis: Use a GLS utility-ratio distance signal while keeping the top-8 penalty and control schedule fixed.",
+    "expected_effect": "Focus penalties on expensive under-penalized tour edges.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "utility_ratio",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_rank_top8_standard_seed",
+    "mechanism_family": "rank_topk_penalty",
+    "algorithm": "Hypothesis: Use rank-based usage pressure so heavily used tour edges receive a discrete penalty while standard control layers remain fixed.",
+    "expected_effect": "Reduce sensitivity to absolute usage counts while preserving top-8 guided penalties.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "rank_usage",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_smooth_top8_standard_seed",
+    "mechanism_family": "smooth_saturation_penalty",
+    "algorithm": "Hypothesis: Use a smooth saturating usage signal to keep repeated-edge penalties bounded while preserving the same GLS control architecture.",
+    "expected_effect": "Avoid over-penalizing very high usage edges while still encouraging diversification.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "smooth_saturation",
+        "strength": 0.12,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_linear_top3_standard_seed",
+    "mechanism_family": "linear_usage_penalty",
+    "algorithm": "Hypothesis: Keep linear usage distance penalties but make penalty edge selection narrower with top-3 edges.",
+    "expected_effect": "Test whether concentrated GLS penalties are better than top-8 on the training distribution.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "linear_usage",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 3,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_linear_top12_standard_seed",
+    "mechanism_family": "linear_usage_penalty",
+    "algorithm": "Hypothesis: Keep linear usage distance penalties but broaden penalty edge selection to top-12 edges.",
+    "expected_effect": "Test whether broader penalty coverage improves diversification without changing other layers.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "linear_usage",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 12,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_linear_top8_decay_seed",
+    "mechanism_family": "linear_usage_penalty",
+    "algorithm": "Hypothesis: Keep the strong linear top-8 architecture but add mild penalty decay so stale penalties do not dominate later search.",
+    "expected_effect": "Improve late-stage adaptability without changing distance update or escape policy.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "linear_usage",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.02
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_linear_top8_periodic_escape_seed",
+    "mechanism_family": "linear_usage_penalty",
+    "algorithm": "Hypothesis: Preserve linear top-8 penalties but periodically increase perturbation moves to escape deeper local basins.",
+    "expected_effect": "Improve exploration while keeping distance and penalty layers fixed.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "linear_usage",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "periodic",
+        "moves": 1,
+        "period": 40,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 2
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "periodic",
+        "period": 50,
+        "stagnation_threshold": 30,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  },
+  {
+    "id": "spec_linear_top8_stagnation_restart_seed",
+    "mechanism_family": "linear_usage_penalty",
+    "algorithm": "Hypothesis: Preserve linear top-8 penalties but trigger reset-to-best only after stagnation instead of a fixed period.",
+    "expected_effect": "Avoid unnecessary restarts while still responding to search stagnation.",
+    "arch_spec": {
+      "distance_update_policy": {
+        "type": "linear_usage",
+        "strength": 0.1,
+        "usage_power": 1.0,
+        "length_weight": 0.0,
+        "cap_multiplier": 20.0
+      },
+      "penalty_policy": {
+        "edge_selection": "top_gap",
+        "top_k": 8,
+        "increment": 1.0,
+        "decay": 0.0
+      },
+      "escape_policy": {
+        "trigger": "constant",
+        "moves": 1,
+        "period": 50,
+        "stagnation_threshold": 20,
+        "size_threshold": 150,
+        "max_moves": 1
+      },
+      "restart_policy": {
+        "action": "reset_to_best",
+        "trigger": "stagnation",
+        "period": 50,
+        "stagnation_threshold": 15,
+        "penalty_decay": 0.0
+      },
+      "schedule_policy": {
+        "strength_schedule": "constant",
+        "early_iterations": 100,
+        "late_multiplier": 1.0,
+        "stagnation_multiplier": 1.0,
+        "size_threshold": 150,
+        "size_multiplier": 1.0
+      }
+    }
+  }
+]

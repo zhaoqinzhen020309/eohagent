@@ -1,0 +1,232 @@
+You are a strategy advisor for an evolutionary algorithm. Your task is to generate evolutionary guidance for Worker LLM to help it learn from parents and innovate.
+
+**# Background**
+
+Worker LLM is evolving an edge distance update function for the "TSP Guided Local Search (GLS)" problem.
+
+Function signature: def update_edge_distance(edge_distance, local_opt_tour, edge_n_used) -> updated_edge_distance
+Code environment: Can only use Python standard library and NumPy
+
+**# Your Task**
+
+Observe the complete code of the 5 parents below and generate 2 evolutionary guidance instructions (P_drafts) for Worker.
+
+Worker will see the complete code of all parents. Your P_draft provides evolutionary **direction and ideas**, not specific execution steps.
+
+**Important: Lower fitness is better.** Individual 1 has the smallest fitness and performs best.
+
+**# Current Population State**
+
+Generation: 1, Stagnation: 0
+
+**# Parent Samples (p=5)**:
+
+**IMPORTANT: Lower fitness is better. Individual 1 has the smallest fitness value and performs best.**
+
+1. **Individual 1 (Fitness: 0.96009)**:
+   * Thought: { An algorithm that applies an exponential penalty based on the frequency of edge usage, using a dynamic penalty factor that increases with the square root of usage count to aggressively discourage repeated edges while allowing exploration. }
+   * Full Code:
+```python
+import numpy as np
+
+def update_edge_distance(edge_distance, local_opt_tour, edge_n_used):
+    updated_edge_distance = edge_distance.copy()
+    n = len(local_opt_tour)
+    base_penalty = 2.0
+    
+    for i in range(n):
+        u = local_opt_tour[i]
+        v = local_opt_tour[(i + 1) % n]
+        usage_count = edge_n_used[u, v]
+        penalty_factor = base_penalty ** np.sqrt(usage_count + 1)
+        updated_edge_distance[u, v] *= penalty_factor
+        updated_edge_distance[v, u] *= penalty_factor
+    
+    return updated_edge_distance
+```
+
+2. **Individual 2 (Fitness: 1.05335)**:
+   * Thought: { An algorithm that applies an exponential penalty based on edge usage frequency, scaled by a dynamic factor that increases penalties for edges in the current local optimum tour while considering global usage statistics. }
+   * Full Code:
+```python
+import numpy as np
+
+def update_edge_distance(edge_distance, local_opt_tour, edge_n_used):
+    updated_edge_distance = edge_distance.copy()
+    n = len(local_opt_tour)
+    base_penalty = 1.8
+    global_usage_mean = np.mean(edge_n_used)
+    
+    for i in range(n):
+        u = local_opt_tour[i]
+        v = local_opt_tour[(i + 1) % n]
+        usage_ratio = edge_n_used[u, v] / (global_usage_mean + 1e-8)
+        penalty = base_penalty ** (1 + np.log1p(usage_ratio))
+        updated_edge_distance[u, v] *= penalty
+        updated_edge_distance[v, u] *= penalty
+    
+    return updated_edge_distance
+```
+
+3. **Individual 3 (Fitness: 1.09833)**:
+   * Thought: { An iterative penalty-based algorithm that dynamically increases edge distances in the local optimal tour while considering historical usage to encourage exploration of alternative paths. }
+   * Full Code:
+```python
+import numpy as np
+
+def update_edge_distance(edge_distance, local_opt_tour, edge_n_used):
+    updated_edge_distance = edge_distance.copy()
+    penalty_factor = 1.2
+    usage_weight = 0.1
+    
+    for i in range(len(local_opt_tour)):
+        from_node = local_opt_tour[i]
+        to_node = local_opt_tour[(i + 1) % len(local_opt_tour)]
+        
+        usage_penalty = 1 + usage_weight * edge_n_used[from_node, to_node]
+        updated_edge_distance[from_node, to_node] *= penalty_factor * usage_penalty
+        updated_edge_distance[to_node, from_node] *= penalty_factor * usage_penalty
+    
+    return updated_edge_distance
+```
+
+4. **Individual 4 (Fitness: 1.18177)**:
+   * Thought: { An algorithm that applies a multiplicative penalty to edges in the local optimum tour, with the penalty strength inversely proportional to the edge's usage frequency and scaled by an exponential decay factor based on iteration count. }
+   * Full Code:
+```python
+import numpy as np
+
+def update_edge_distance(edge_distance, local_opt_tour, edge_n_used):
+    updated_edge_distance = edge_distance.copy()
+    n = len(local_opt_tour)
+    iteration_factor = 0.9
+    base_penalty = 1.8
+    
+    max_usage = np.max(edge_n_used)
+    
+    for i in range(n):
+        u = local_opt_tour[i]
+        v = local_opt_tour[(i + 1) % n]
+        
+        frequency_factor = 1.0 - (edge_n_used[u, v] / (max_usage + 1e-8))
+        penalty = base_penalty * (frequency_factor ** iteration_factor)
+        
+        updated_edge_distance[u, v] *= penalty
+        updated_edge_distance[v, u] *= penalty
+    
+    return updated_edge_distance
+```
+
+5. **Individual 5 (Fitness: 1.1967)**:
+   * Thought: { An algorithm that applies an exponential penalty to edges in the local optimum tour, scaled by their usage frequency and a decaying temperature factor to balance exploration and exploitation over time. }
+   * Full Code:
+```python
+import numpy as np
+
+def update_edge_distance(edge_distance, local_opt_tour, edge_n_used):
+    updated_edge_distance = edge_distance.copy()
+    temperature = 0.8
+    base_penalty = 1.8
+    
+    for i in range(len(local_opt_tour)):
+        u = local_opt_tour[i]
+        v = local_opt_tour[(i + 1) % len(local_opt_tour)]
+        usage = edge_n_used[u, v]
+        penalty = base_penalty * np.exp(usage * temperature)
+        updated_edge_distance[u, v] *= penalty
+        updated_edge_distance[v, u] *= penalty
+    
+    return updated_edge_distance
+```
+
+**# Last Generation Feedback**:
+  (None)
+
+**# How to Generate Effective P_draft**
+
+**Critical Understanding of P_draft Usage**
+
+The Worker LLM receives a prompt structured like this:
+```
+Firstly, {YOUR_P_DRAFT}
+Secondly, analyze all parent heuristics in detail...
+Thirdly, implement your new heuristic in code...
+```
+
+Your P_draft will be inserted into the "Firstly" section, so it MUST be a simple, clear, executable task description.
+
+**Good P_draft Examples (short, open, action-oriented)**:
+
+1. "identify the common penalty mechanism and create a variation"
+2. "combine different edge penalization techniques from multiple parents"
+3. "explore a fundamentally different distance update strategy"
+
+**Bad P_draft Examples (specific, constrained)**:
+
+1. BAD: "identify patterns from top-performing parents and refine them"
+   - Problem: "top-performing" only focuses on best parents, ignores innovations in others
+   - Problem: "refine" is vague, Worker doesn't know how to refine
+
+2. BAD: "create a balanced penalty function using exponential decay of edge usage frequency"
+   - Problem: Specifies "exponential decay", limits Worker's creativity
+   - Problem: Multiple sub-tasks (balanced, exponential decay, frequency), too complex
+
+**Key Principles**:
+
+- Keep it brief (under 15 words)
+- Keep it open (don't specify HOW to do it)
+- Use simple verbs ("combine", "create", "explore", "identify")
+- Tell Worker WHAT to do, not HOW to do it
+- Leave room for Worker's creativity
+
+**AVOID in Your P_draft (with explanations)**:
+
+- "balanced", "refined", "sophisticated", "optimized"
+  Problem: Vague adjectives. What is "balanced"? Worker cannot judge.
+  Instead: Use concrete verbs like "combine", "merge", "create"
+
+- "top-performing", "best", "optimal"
+  Problem: Limits scope to only best parents, ignoring innovations in others.
+  Instead: Say "from parents" or "across all parents"
+
+- Specific method names (e.g., "exponential decay", "sigmoid function", "normalized frequency")
+  Problem: Constrains Worker to exact techniques, no creativity.
+  Instead: Say "different mathematical form" or "new approach"
+
+- Multiple sub-tasks in one P_draft
+  Problem: Too complex for Worker to execute in one step.
+  Instead: Keep one clear task per P_draft
+
+**# Two Strategy Types**
+
+**1. Exploitation**: Guide Worker to learn from parents. Keep it simple - what to look for and what to do with it.
+
+**2. Exploration**: Guide Worker to try new directions. Keep it simple - what to move away from and what new direction to try.
+
+**Constraint**: Do not suggest methods requiring cross-call information (e.g., historical records, state memory).
+
+**# Output Format**
+
+Return ONLY valid JSON:
+
+```json
+{
+  "portfolio": [
+    {
+      "strategy_type": "Exploitation",
+      "P_draft": "[Your suggestion - keep under 15 words]"
+    },
+    {
+      "strategy_type": "Exploration",
+      "P_draft": "[Your suggestion - keep under 15 words]"
+    }
+  ]
+}
+```
+
+Requirements:
+1. Valid JSON with no syntax errors
+2. Exactly 2 strategies in portfolio
+3. Each P_draft should be SHORT and OPEN
+4. Output ONLY JSON
+

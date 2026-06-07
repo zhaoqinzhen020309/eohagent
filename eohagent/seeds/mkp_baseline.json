@@ -1,0 +1,7 @@
+[
+  {
+    "id": "profit_weight_seed",
+    "algorithm": "Profit-weight greedy baseline placeholder for multidimensional knapsack style tasks.",
+    "code": "def heuristic(item, state):\n    return 0.0"
+  }
+]

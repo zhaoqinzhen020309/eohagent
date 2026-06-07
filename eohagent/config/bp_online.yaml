@@ -1,0 +1,13 @@
+project:
+  name: eohagent_bp_online
+  problem: bp_online
+  output_dir: ./eohagent/results/bp_online_run
+
+evaluator:
+  mode: import
+  problem: bp_online
+  objective_direction: minimize
+  function_name: score
+
+bootstrap:
+  seed_path: ./eohagent/seeds/bp_online_baseline.json

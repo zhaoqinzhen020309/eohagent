@@ -1,0 +1,13 @@
+project:
+  name: eohagent_tsp_construct
+  problem: tsp_construct
+  output_dir: ./eohagent/results/tsp_construct_run
+
+evaluator:
+  mode: import
+  problem: tsp_construct
+  objective_direction: minimize
+  function_name: select_next_node
+
+bootstrap:
+  seed_path: ./eohagent/seeds/tsp_baseline.json

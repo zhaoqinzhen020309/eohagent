@@ -1,0 +1,103 @@
+project:
+  name: eohagent_tsp_gls_arch_spec_deepseek_10x20_v8
+  problem: tsp_gls_arch_spec
+  output_dir: ./eohagent/results/tsp_gls_arch_spec_deepseek_10x20_v8
+
+evaluator:
+  mode: import
+  problem: tsp_gls_arch_spec
+  objective_direction: minimize
+  function_name: CandidateGLSArchitecture
+  architecture_class_name: CandidateGLSArchitecture
+  timeout: 500
+  n_inst_eva: 64
+  time_limit: 60
+  ite_max: 1000
+  perturbation_moves: 1
+
+architecture:
+  open_layers:
+    - distance_update_policy
+    - penalty_policy
+    - escape_policy
+    - restart_policy
+    - schedule_policy
+
+llm:
+  provider: openai_compatible
+  model: deepseek-v4-flash
+  api_base: https://api.deepseek.com
+  api_key: ${AGENT_EOHS_API_KEY}
+  temperature: 1.0
+  max_retries: 3
+  transport_retries: 3
+  timeout: 600
+  thinking: disabled
+
+evolution:
+  pop_size: 10
+  generations: 20
+  offspring_per_generation: 10
+  n_proc: 5
+  max_llm_retries: 3
+  max_eval_retries: 1
+  parent_selection: qd_cells
+  survival_selection: qd_cells
+  allow_archive_parents: false
+  deduplicate_code: true
+  deduplicate_objective: false
+
+selection:
+  use_selection_score: false
+  diversity_weight: 0.0
+
+bootstrap:
+  use_baseline_seed: true
+  n_proc: 10
+  seed_path: ./eohagent/seeds/tsp_gls_arch_spec_baseline.json
+
+agent:
+  workflow: langgraph
+  max_steps_per_offspring: 8
+  max_repairs_per_candidate: 0
+  enable_dynamic_skill_selection: true
+  enable_generation_planning: true
+  enable_generation_reflection: true
+
+harness:
+  require_experiment_intent: true
+
+memory:
+  provider: langmem
+  namespace:
+    - eohagent
+    - tsp_gls_arch_spec_v8
+  planner_memory_items: 5
+  enable_compaction: false
+  enable_generation_reflection: true
+  compact_every_generation: false
+  keep_recent_events: 80
+
+context_management:
+  enable: true
+  context_window: 65536
+  compact_threshold: 0.70
+  chars_per_token: 3.0
+  max_compaction_retries: 2
+  recent_events: 8
+  population_items: 6
+  notebook_items: 4
+
+prompt_compression:
+  enabled: true
+  threshold_chars: 8000
+  rate: 0.55
+  min_segment_chars: 240
+
+generalization:
+  enable_audit: false
+  enable_probes: false
+  probe_threshold: 0.5
+  probe_weight: 0.0
+  std_weight: 0.0
+  tail_weight: 0.0

@@ -1,0 +1,45 @@
+# Second best heuristic extracted from training results
+# Objective: 0.00624
+# Algorithm: This algorithm calculates scores by combining a bin's remaining capacity with a Gaussian-based penalty for new bins, an exponential bonus for utilization, a hyperbolic bonus for exact fits, and a segmented function that penalizes small residuals while rewarding larger usable residuals with adaptive thresholds based on bin capacity and item size.
+
+import numpy as np
+
+
+def score(item, bins):
+    valid_bins = bins > item
+    if not np.any(valid_bins):
+        return np.full_like(bins, -np.inf)
+
+    distances = bins[valid_bins] - item
+    penalty_exp = -np.exp(-distances / (bins[valid_bins] + 1))
+    harmonic_mean = 2 * (-np.log(distances + 1) * penalty_exp) / (-np.log(distances + 1) + penalty_exp)
+    remaining_capacity_ratio = distances / bins[valid_bins]
+    size_diversity = 1 / (1 + np.abs(np.mean(bins) - bins[valid_bins]))
+    proximity_optimal = distances / np.max(bins[valid_bins])
+    dynamic_weight = np.clip(0.5 + 0.5 * (np.mean(bins[valid_bins]) / np.max(bins)), 0, 1)
+    sigmoid_penalty = 1 / (1 + np.exp(-10 * (bins[valid_bins] - bins.max())))
+    penalty_inv_quad = -(distances / (bins[valid_bins] + 1)) ** (-2)
+
+    scores = np.zeros_like(bins)
+    scores[valid_bins] = harmonic_mean + remaining_capacity_ratio * 0.5 + size_diversity * dynamic_weight * 0.3 + proximity_optimal * 0.2 - sigmoid_penalty + penalty_inv_quad * 0.1
+
+    return scores
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

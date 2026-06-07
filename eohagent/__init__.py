@@ -1,0 +1,3 @@
+"""Expert-harnessed EoH framework."""
+
+__version__ = "0.1.0"

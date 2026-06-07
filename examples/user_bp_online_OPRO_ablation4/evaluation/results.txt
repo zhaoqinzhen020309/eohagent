@@ -1,0 +1,15 @@
+Weibull 1k, 100, Excess: 3.93%
+Weibull 5k, 100, Excess: 2.84%
+Weibull 10k, 100, Excess: 2.85%
+Weibull 1k, 200, Excess: 3.54%
+Weibull 5k, 200, Excess: 2.67%
+Weibull 10k, 200, Excess: 2.64%
+Weibull 1k, 300, Excess: 3.56%
+Weibull 5k, 300, Excess: 2.69%
+Weibull 10k, 300, Excess: 2.67%
+Weibull 1k, 400, Excess: 3.63%
+Weibull 5k, 400, Excess: 2.74%
+Weibull 10k, 400, Excess: 2.69%
+Weibull 1k, 500, Excess: 3.61%
+Weibull 5k, 500, Excess: 2.75%
+Weibull 10k, 500, Excess: 2.71%
